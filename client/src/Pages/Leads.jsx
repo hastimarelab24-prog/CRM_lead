@@ -171,7 +171,7 @@ export default function Leads() {
       } while (currentPages <= totalPages);
 
       if (allLeads.length === 0) {
-        alert("ડાઉનલોડ કરવા માટે કોઈ ડેટા મળ્યો નથી.");
+        alert("No data found to download.");
         return;
       }
 
@@ -295,7 +295,6 @@ export default function Leads() {
           .trim()
           .toLowerCase()
           .replace(/[\s_-]+/g, "");
-
       const importLeads = rows.map((row) => {
         const normalizedRow = {};
         Object.keys(row).forEach((key) => {
