@@ -306,5 +306,7 @@ router.put("/:id", leadController.updateLead);
 
 // DELETE LEAD
 router.delete("/:id", leadController.deleteLead);
+// make sure this post endpoint
+router.post('/send-email',leadController.sendEmailToLead)
 
 module.exports = router;

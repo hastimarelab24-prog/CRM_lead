@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
-
-const TeamUser = require("../models/TeamUser");
-const Lead = require('../models/lead'); 
+const Lead = require('../models/lead');
 const FollowUp = require('../models/FollowUp');
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
+const nodemailer = require('nodemailer');
+// GET ALL LEADS
 
-// 1. GET ALL LEADS
 
 exports.getLeads = async (req, res) => {
   try {
@@ -68,11 +67,11 @@ exports.getLeads = async (req, res) => {
 
     const followUps = leadIds.length
       ? await FollowUp.find({
-        $or:[
-          {lead: { $in: leadIds }},
-          {leadId: { $in: leadIds },}
+        $or: [
+          { lead: { $in: leadIds } },
+          { leadId: { $in: leadIds }, }
         ]
-        
+
       })
         .populate({
           path: "assignedTo",
@@ -138,20 +137,20 @@ exports.getLeads = async (req, res) => {
 
 exports.createLead = async (req, res) => {
   try {
-   const {
-  name,
-  email,
-  phone,
-  company,
-  status,
-  source,
-  assignedEmployee,
-  followUpDate,
-  followUpNote,
-  priority,
-  followUps,
-  allowDuplicate,
-} = req.body;
+    const {
+      name,
+      email,
+      phone,
+      company,
+      status,
+      source,
+      assignedEmployee,
+      followUpDate,
+      followUpNote,
+      priority,
+      followUps,
+      allowDuplicate,
+    } = req.body;
 
     if (!name || !name.trim() || !email || !email.trim()) {
       return res
@@ -160,18 +159,22 @@ exports.createLead = async (req, res) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanName=name.trim();
-    const existingLead = await Lead.findOne({ $or:[{email: cleanEmail,},
+    const cleanName = name.trim();
+    const existingLead = await Lead.findOne({
+      $or: [{ email: cleanEmail, },
       {
-        name:{
-          $regex:`^${cleanName}$`,$options:"i",
+        name: {
+          $regex: `^${cleanName}$`, $options: "i",
         }
       }
-    ] });
+      ]
+    });
     if (existingLead && !allowDupalicate) {
-      return res.status(200).json({ success: false, duplicate: true,requireConfirmation:true, message: "Lead already exists.Dupalicate recoed skipped.", existingLead:{
-        _id:existingLead._id,name:existingLead.name,email:existingLead.email,
-      } })
+      return res.status(200).json({
+        success: false, duplicate: true, requireConfirmation: true, message: "Lead already exists.Dupalicate recoed skipped.", existingLead: {
+          _id: existingLead._id, name: existingLead.name, email: existingLead.email,
+        }
+      })
     }
     const validStatuses = ["New", "Contacted", "Qualified", "Proposal Sent", "Nurturing", "Lost", "Won"];
     const requestedStatus = String(status || "New").trim();
@@ -229,8 +232,10 @@ exports.createLead = async (req, res) => {
 
     return res
       .status(201)
-      .json({ success: true, dupalicate: !existingLead, message: existingLead ? "new dupalicate entry create successfully"
-        : "Lead processed successfully.", lead });
+      .json({
+        success: true, dupalicate: !existingLead, message: existingLead ? "new dupalicate entry create successfully"
+          : "Lead processed successfully.", lead
+      });
   } catch (error) {
     console.error("Create lead error:", error);
     // if (error.code === 11000) {
@@ -647,3 +652,128 @@ exports.createLeadWithFollowUps = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error." });
   }
 };
+
+
+exports.sendEmailToLead = async (req, res) => {
+  try {
+    const { email, name, company } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "recipient email is required" })
+    }
+
+    // // create a test account automatically 
+    // let testAccount = await nodemailer.createTestAccount();
+    // configure transporter with ethereal AMTP details
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    })
+    // email options (from can be any fake or test email to can be any email)
+    const mailOptions = {
+      from: "hastimarelab24@gmail.com",
+      to: email,
+      subject: `official notification :welcomw to leadsphere,${leadName}`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leadsphere Corporate email</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif';">
+    <table  border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed; background: color #f4f6f4; padding: 40px; 0;">
+        <tr>
+            <td align="center">
+               <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #fffff; border-radius: 12px; overflow:hidden;">
+                <!-- header -->
+                <tr>
+                    <td align="center" style="background-color: #1e40af; padding: 30px 20px;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 26px;">Leadsphere CRM</h1>
+                        <p style="#93c5fd; margin: 5px 0 0; font-size: 13px;">Official enterprise lead communication</p>
+                    </td>
+                </tr>
+                <!-- body -->
+                 <tr>
+                    <td style="padding: 35px 30px; color: #334155;">
+                        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Dear ${leadName}</h2>
+                        <p style="font-size: 15px; line-height: 1.6; color: #475569;">
+                            Thank you for your interest in <strong>Leadsphere solution</strong>
+                            we have successfully registeres your details in our crm system  and our dedicated team is currently reviewing your project requirements.
+                        </p>
+                        <!-- lead details -->
+                         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; margin: 25px 0;">
+                            <tr>
+                                <td style="padding: 10px ; font-size: 14px; color: #64778b;">
+                                    <strong>Recipient email:</strong>
+                                </td>
+                                <td style="padding: 10px; font-size: 14px; color: #64748b; text-align: right;">
+                                    ${email}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; font-size: 14px; color: #64748b;">
+                                    <strong>Associated Company:</strong>
+                                </td>
+                                <td style="padding: 10px; font-size: 14px; color: #0f172a; text-align: right;">
+                                    ${companyName || 'not provided'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; font-size: 14px; color: #64748b;">
+                                    <strong>status:</strong>
+                                </td>
+                                <td style="padding: 10px; color: #16a34a; font-weight: 600; text-align: right;">
+                                    Verified & Active
+                                </td>
+                            </tr>
+                         </table>
+                         <p style="font-size: 15px; line-height: 1.6; color: #475569;">an assigned representative will get in touch with you shortly to schedule a details follow-up discussion.</p>
+                    
+                         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #cbd5e1;">
+                            <p style="margin: 0; font-size: 14px; font-weight: 600;">
+                                best regards
+                            </p>
+                            <p style="margin: 4px 0 0; font-size: 14px; color: #2563eb; font-weight: 700;">
+                                Leadsphere operations team
+                            </p>
+                         </div>
+                        </td>
+
+                 </tr>
+                 <!-- footer -->
+                  <tr>
+                    <td align="center" style="background-color: #f1f5f9; padding: 20px; font-size: 12px; color: #94a3b8;">
+                        <p style="margin: 0;">this is an automated system notification sent from <strong>LeadsphereCRM</strong></p>
+                        <p style="margin: 4px 0 0;">${new Date().getFullYear()} Leadsphereinc.all right reserved</p>
+                    </td>
+                  </tr>
+               </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
+    }
+    // send email
+    let info = await transporter.sendMail(mailOptions);
+    console.log(`from:${mailOptions.from}`);
+    console.log(`to:${mailOptions.to}`);
+    console.log(`subject:${mailOptions.subject}`);
+    console.log(`MESSAGE : Email successfully generated for ${name || 'Lead'} (${company || 'No Company'})`);
+
+    return res.status(200).json({
+      success: true, message: `email successfully sent to ${email} from hastimarelab24@gmail.com`,
+      previewUrl: nodemailer.getTestMessageUrl(info)
+    })
+  } catch (err) {
+    console.error("send email error:", err);
+    return res.status(500).json({
+      success: false, message: err.message || "failed to send email"
+    })
+  }
+}
