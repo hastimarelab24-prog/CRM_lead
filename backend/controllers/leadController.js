@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Lead = require('../models/lead');
 const FollowUp = require('../models/FollowUp');
 const validId = (id) => mongoose.Types.ObjectId.isValid(id);
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 // GET ALL LEADS
 
 
@@ -233,7 +233,7 @@ exports.createLead = async (req, res) => {
     return res
       .status(201)
       .json({
-        success: true, dupalicate: !existingLead, message: existingLead ? "new dupalicate entry create successfully"
+        success: true, dupalicate: !existingLead, message: existingLead ? "New dupalicate entry create successfully"
           : "Lead processed successfully.", lead
       });
   } catch (error) {
@@ -654,126 +654,194 @@ exports.createLeadWithFollowUps = async (req, res) => {
 };
 
 
+// exports.sendEmailToLead = async (req, res) => {
+//   try {
+//     const { email, name, company } = req.body;
+//     if (!email) {
+//       return res.status(400).json({ success: false, message: "recipient email is required" })
+//     }
+
+//     // // create a test account automatically 
+//     // let testAccount = await nodemailer.createTestAccount();
+//     // configure transporter with ethereal AMTP details
+//     const transporter = nodemailer.createTransport({
+//       host: "smtp.gmail.com",
+//       port: 465,
+//       secure: true,
+//       service:'gmail',
+//       auth: {
+//         user: process.env.EMAIL_USER || 'hastimarelab24@gmail.com',
+//         pass: process.env.EMAIL_PASS, //app password from google
+//       }
+//     })
+//     // email options (from can be any fake or test email to can be any email)
+//     const mailOptions = {
+//       from: "hastimarelab24@gmail.com",
+//       to: email,
+//       subject: `hello ${name} from ${company || 'our team'}`,
+//       html: `<!DOCTYPE html>
+// <html lang="en">
+// <head>
+//     <meta charset="UTF-8">
+//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//     <title>Leadsphere Corporate email</title>
+// </head>
+// <body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif';">
+//     <table  border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed; background: color #f4f6f4; padding: 40px; 0;">
+//         <tr>
+//             <td align="center">
+//                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #fffff; border-radius: 12px; overflow:hidden;">
+//                 <!-- header -->
+//                 <tr>
+//                     <td align="center" style="background-color: #1e40af; padding: 30px 20px;">
+//                         <h1 style="color: #ffffff; margin: 0; font-size: 26px;">Leadsphere CRM</h1>
+//                         <p style="#93c5fd; margin: 5px 0 0; font-size: 13px;">Official enterprise lead communication</p>
+//                     </td>
+//                 </tr>
+//                 <!-- body -->
+//                  <tr>
+//                     <td style="padding: 35px 30px; color: #334155;">
+//                         <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Dear ${leadName}</h2>
+//                         <p style="font-size: 15px; line-height: 1.6; color: #475569;">
+//                             Thank you for your interest in <strong>Leadsphere solution</strong>
+//                             we have successfully registeres your details in our crm system  and our dedicated team is currently reviewing your project requirements.
+//                         </p>
+//                         <!-- lead details -->
+//                          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; margin: 25px 0;">
+//                             <tr>
+//                                 <td style="padding: 10px ; font-size: 14px; color: #64778b;">
+//                                     <strong>Recipient email:</strong>
+//                                 </td>
+//                                 <td style="padding: 10px; font-size: 14px; color: #64748b; text-align: right;">
+//                                     ${email}
+//                                 </td>
+//                             </tr>
+//                             <tr>
+//                                 <td style="padding: 10px; font-size: 14px; color: #64748b;">
+//                                     <strong>Associated Company:</strong>
+//                                 </td>
+//                                 <td style="padding: 10px; font-size: 14px; color: #0f172a; text-align: right;">
+//                                     ${companyName || 'not provided'}
+//                                 </td>
+//                             </tr>
+//                             <tr>
+//                                 <td style="padding: 10px; font-size: 14px; color: #64748b;">
+//                                     <strong>status:</strong>
+//                                 </td>
+//                                 <td style="padding: 10px; color: #16a34a; font-weight: 600; text-align: right;">
+//                                     Verified & Active
+//                                 </td>
+//                             </tr>
+//                          </table>
+//                          <p style="font-size: 15px; line-height: 1.6; color: #475569;">an assigned representative will get in touch with you shortly to schedule a details follow-up discussion.</p>
+                    
+//                          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #cbd5e1;">
+//                             <p style="margin: 0; font-size: 14px; font-weight: 600;">
+//                                 best regards
+//                             </p>
+//                             <p style="margin: 4px 0 0; font-size: 14px; color: #2563eb; font-weight: 700;">
+//                                 Leadsphere operations team
+//                             </p>
+//                          </div>
+//                         </td>
+
+//                  </tr>
+//                  <!-- footer -->
+//                   <tr>
+//                     <td align="center" style="background-color: #f1f5f9; padding: 20px; font-size: 12px; color: #94a3b8;">
+//                         <p style="margin: 0;">this is an automated system notification sent from <strong>LeadsphereCRM</strong></p>
+//                         <p style="margin: 4px 0 0;">${new Date().getFullYear()} Leadsphereinc.all right reserved</p>
+//                     </td>
+//                   </tr>
+//                </table>
+//             </td>
+//         </tr>
+//     </table>
+// </body>
+// </html>`
+//     }
+//     // send email
+//     let info = await transporter.sendMail(mailOptions);
+//     console.log(`from:${mailOptions.from}`);
+//     console.log(`to:${mailOptions.to}`);
+//     console.log(`subject:${mailOptions.subject}`);
+//     console.log(`MESSAGE : Email successfully generated for ${name || 'Lead'} (${company || 'No Company'})`);
+
+//     return res.status(200).json({
+//       success: true, message: `email successfully sent to ${email} from hastimarelab24@gmail.com`,
+//       previewUrl: nodemailer.getTestMessageUrl(info)
+//     })
+//   } catch (err) {
+//     console.error("send email error:", err);
+//     return res.status(500).json({
+//       success: false, message: err.message || "failed to send email"
+//     })
+//   }
+// }
+
+// Add this inside your leadController.js
+
 exports.sendEmailToLead = async (req, res) => {
   try {
-    const { email, name, company } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, message: "recipient email is required" })
+    const { email, name, company, cc ,subject,message} = req.body;
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Recipient email is required.",
+      });
     }
 
-    // // create a test account automatically 
-    // let testAccount = await nodemailer.createTestAccount();
-    // configure transporter with ethereal AMTP details
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+    // CC emails ne safely validate ane clean karo
+    let validCcList = [];
+    if (cc && typeof cc === "string" && cc.trim() !== "") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const rawEmails = cc.split(",").map((item) => item.trim()).filter(Boolean);
+
+      for (const ccAddr of rawEmails) {
+        if (!emailRegex.test(ccAddr)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid CC email address: ${ccAddr}`,
+          });
+        }
+        validCcList.push(ccAddr);
       }
-    })
-    // email options (from can be any fake or test email to can be any email)
-    const mailOptions = {
-      from: "hastimarelab24@gmail.com",
-      to: email,
-      subject: `official notification :welcomw to leadsphere,${leadName}`,
-      html: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leadsphere Corporate email</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif';">
-    <table  border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed; background: color #f4f6f4; padding: 40px; 0;">
-        <tr>
-            <td align="center">
-               <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #fffff; border-radius: 12px; overflow:hidden;">
-                <!-- header -->
-                <tr>
-                    <td align="center" style="background-color: #1e40af; padding: 30px 20px;">
-                        <h1 style="color: #ffffff; margin: 0; font-size: 26px;">Leadsphere CRM</h1>
-                        <p style="#93c5fd; margin: 5px 0 0; font-size: 13px;">Official enterprise lead communication</p>
-                    </td>
-                </tr>
-                <!-- body -->
-                 <tr>
-                    <td style="padding: 35px 30px; color: #334155;">
-                        <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Dear ${leadName}</h2>
-                        <p style="font-size: 15px; line-height: 1.6; color: #475569;">
-                            Thank you for your interest in <strong>Leadsphere solution</strong>
-                            we have successfully registeres your details in our crm system  and our dedicated team is currently reviewing your project requirements.
-                        </p>
-                        <!-- lead details -->
-                         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; margin: 25px 0;">
-                            <tr>
-                                <td style="padding: 10px ; font-size: 14px; color: #64778b;">
-                                    <strong>Recipient email:</strong>
-                                </td>
-                                <td style="padding: 10px; font-size: 14px; color: #64748b; text-align: right;">
-                                    ${email}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; font-size: 14px; color: #64748b;">
-                                    <strong>Associated Company:</strong>
-                                </td>
-                                <td style="padding: 10px; font-size: 14px; color: #0f172a; text-align: right;">
-                                    ${companyName || 'not provided'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; font-size: 14px; color: #64748b;">
-                                    <strong>status:</strong>
-                                </td>
-                                <td style="padding: 10px; color: #16a34a; font-weight: 600; text-align: right;">
-                                    Verified & Active
-                                </td>
-                            </tr>
-                         </table>
-                         <p style="font-size: 15px; line-height: 1.6; color: #475569;">an assigned representative will get in touch with you shortly to schedule a details follow-up discussion.</p>
-                    
-                         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #cbd5e1;">
-                            <p style="margin: 0; font-size: 14px; font-weight: 600;">
-                                best regards
-                            </p>
-                            <p style="margin: 4px 0 0; font-size: 14px; color: #2563eb; font-weight: 700;">
-                                Leadsphere operations team
-                            </p>
-                         </div>
-                        </td>
-
-                 </tr>
-                 <!-- footer -->
-                  <tr>
-                    <td align="center" style="background-color: #f1f5f9; padding: 20px; font-size: 12px; color: #94a3b8;">
-                        <p style="margin: 0;">this is an automated system notification sent from <strong>LeadsphereCRM</strong></p>
-                        <p style="margin: 4px 0 0;">${new Date().getFullYear()} Leadsphereinc.all right reserved</p>
-                    </td>
-                  </tr>
-               </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`
     }
-    // send email
-    let info = await transporter.sendMail(mailOptions);
-    console.log(`from:${mailOptions.from}`);
-    console.log(`to:${mailOptions.to}`);
-    console.log(`subject:${mailOptions.subject}`);
-    console.log(`MESSAGE : Email successfully generated for ${name || 'Lead'} (${company || 'No Company'})`);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    // subject user 
+    const emailSubject = subject && subject.trim() !== "" ? subject.trim() :`hello ${name || "lead"} from${company || "our team"}`
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
+      to: email.trim(),
+      // Yahan ab validCcList use kiya hai, jisse ReferenceError solve ho jayega
+      ...(validCcList.length > 0 ? { cc: validCcList.join(", ") } : {}),
+      subject: emailSubject,
+      text: `Hello ${name || "Lead"},\n\nThank you for connecting with us! We look forward to working with you.\n\nBest regards,\nLeadsphere Operations Team`,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
-      success: true, message: `email successfully sent to ${email} from hastimarelab24@gmail.com`,
-      previewUrl: nodemailer.getTestMessageUrl(info)
-    })
-  } catch (err) {
-    console.error("send email error:", err);
+      success: true,
+      message:
+        validCcList.length > 0
+          ? `Email sent successfully to ${email.trim()} (CC: ${validCcList.join(", ")})`
+          : `Email sent successfully to ${email.trim()}!`,
+    });
+  } catch (error) {
+    console.error("Email send error:", error);
     return res.status(500).json({
-      success: false, message: err.message || "failed to send email"
-    })
+      success: false,
+      message: error.message || "Failed to send email.",
+    });
   }
-}
+};
