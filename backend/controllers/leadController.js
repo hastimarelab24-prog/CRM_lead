@@ -781,64 +781,111 @@ exports.createLeadWithFollowUps = async (req, res) => {
 
 // Add this inside your leadController.js
 
+// exports.sendEmailToLead = async (req, res) => {
+//   try {
+//     const { email, name, company, cc,bcc ,subject,message} = req.body;
+
+//     if (!email || !email.trim()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Recipient email is required.",
+//       });
+//     }
+
+//     // CC emails ne safely validate ane clean karo
+//     // let validCcList = [];
+//     // if (cc && typeof cc === "string" && cc.trim() !== "") {
+//     //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     //   const rawEmails = cc.split(",").map((item) => item.trim()).filter(Boolean);
+
+//     //   for (const ccAddr of rawEmails) {
+//     //     if (!emailRegex.test(ccAddr)) {
+//     //       return res.status(400).json({
+//     //         success: false,
+//     //         message: `Invalid CC email address: ${ccAddr}`,
+//     //       });
+//     //     }
+//     //     validCcList.push(ccAddr);
+//     //   }
+//     // }
+
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+//     // subject user 
+//     const emailSubject = subject && subject.trim() !== "" ? subject.trim() :`hello ${name || "lead"} from${company || "our team"}`
+//     const emailText = messange?.trim() || `hello ${name || "lead"},\n\nThank you for  connecting with us! we look forward to working with you \n\n best regards,\n leadsphere opertions team;`
+//     const mailOptions = {
+//       from: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
+//       to: email.trim(),
+//       cc:cc || undefined,
+//       bcc:bcc || undefined,
+//       // ...(validCcList.length > 0 ? { cc: validCcList.join(", ") } : {}),
+//       subject: emailSubject,
+//       text:emailText,
+//       // text: `Hello ${name || "Lead"},\n\nThank you for connecting with us! We look forward to working with you.\n\nBest regards,\nLeadsphere Operations Team`,
+//     };
+
+//     const info = await transporter.sendMail(mailOptions);
+
+//     return res.status(200).json({
+//       success: true,
+//       message: cc
+//         // validCcList.length > 0
+//           ? `Email sent successfully to ${email.trim()} (CC: ${cc})})`
+//           : `Email sent successfully to ${email.trim()}!`,
+//       messageId:info.messageId
+//         });
+//   } catch (error) {
+//     console.error("Email send error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message || "Failed to send email.",
+//     });
+//   }
+// };
 exports.sendEmailToLead = async (req, res) => {
   try {
-    const { email, name, company, cc ,subject,message} = req.body;
+    const { email, name, company, cc, bcc, subject, message } = req.body;
 
-    if (!email || !email.trim()) {
+    if (!email) {
       return res.status(400).json({
         success: false,
         message: "Recipient email is required.",
       });
     }
 
-    // CC emails ne safely validate ane clean karo
-    let validCcList = [];
-    if (cc && typeof cc === "string" && cc.trim() !== "") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const rawEmails = cc.split(",").map((item) => item.trim()).filter(Boolean);
-
-      for (const ccAddr of rawEmails) {
-        if (!emailRegex.test(ccAddr)) {
-          return res.status(400).json({
-            success: false,
-            message: `Invalid CC email address: ${ccAddr}`,
-          });
-        }
-        validCcList.push(ccAddr);
-      }
-    }
-
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS, // Make sure your 16-character Gmail App Password is set in .env
       },
     });
-    // subject user 
-    const emailSubject = subject && subject.trim() !== "" ? subject.trim() :`hello ${name || "lead"} from${company || "our team"}`
 
     const mailOptions = {
-      from: process.env.EMAIL_USER || "hastimarelab24@gmail.com",
-      to: email.trim(),
-      // Yahan ab validCcList use kiya hai, jisse ReferenceError solve ho jayega
-      ...(validCcList.length > 0 ? { cc: validCcList.join(", ") } : {}),
-      subject: emailSubject,
-      text: `Hello ${name || "Lead"},\n\nThank you for connecting with us! We look forward to working with you.\n\nBest regards,\nLeadsphere Operations Team`,
+      from: `"LeadSphere CRM" <${process.env.EMAIL_USER || "hastimarelab24@gmail.com"}>`,
+      to: email,
+      ...(cc ? { cc } : {}),
+      ...(bcc ? { bcc } : {}),
+      subject: subject || `Hello ${name || "Lead"}${company ? ` from ${company}` : ""}`,
+      text:
+        message ||
+        `Hello ${name || "there"},\n\nThank you for connecting with LeadSphere!\n\nBest regards,\nLeadSphere Team`,
     };
 
     await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       success: true,
-      message:
-        validCcList.length > 0
-          ? `Email sent successfully to ${email.trim()} (CC: ${validCcList.join(", ")})`
-          : `Email sent successfully to ${email.trim()}!`,
+      message: "Email sent successfully!",
     });
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("Send email controller error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to send email.",
