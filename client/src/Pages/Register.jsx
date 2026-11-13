@@ -77,8 +77,8 @@ const Register = () => {
       });
 
       if (res.status === 201 || res.status === 200) {
-        alert("🎯 Account created successfully! Redirecting to login page...");
-        // ✅ CRITICAL FIX: Automatically redirects the user to the login screen
+        alert(" Account created successfully! Redirecting to login page...");
+        //  CRITICAL FIX: Automatically redirects the user to the login screen
         navigate('/login'); 
       }
     } catch (err) {

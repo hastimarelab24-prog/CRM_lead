@@ -1,130 +1,152 @@
-const nodemailer = require("nodemailer");
+{/* View Details Modal */}
+        <LeadModal
+          isOpen={viewModal.isOpen}
+          onClose={() => setViewModal({ isOpen: false, data: null })}
+          title="Lead Full Details & Activity History"
+        >
+          {viewModal.data && (() => {
+            const lead = viewModal.data;
+            const assignedName = typeof lead.assignedEmployee === "object" && lead.assignedEmployee !== null 
+              ? (lead.assignedEmployee?.name || lead.assignedEmployee.username || lead.assignedEmployee.email) 
+              : (lead.assignedEmployee || lead.assignedTo || "Unassigned");
+            
+            const createdDate = lead.createdAt 
+              ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+              : 'N/A';
+            
+            const followUps = Array.isArray(lead.followUps) ? lead.followUps : [];
 
-// 1. Gmail SMTP Transporter Configuration using App Password
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Port 465 SSL connection for security
-  auth: {
-    user: process.env.EMAIL_USER, // hastimarelab24@gmail.com
-    pass: process.env.EMAIL_PASS, // 16-digit App Password from .env
-  },
-});
+            return (
+              <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+                {/* Main Lead Information Grid */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
+                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Basic Information</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Full Name</p>
+                      <p className="font-bold text-slate-900 mt-0.5">{lead.name || lead.Name || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Company</p>
+                      <p className="font-bold text-slate-900 mt-0.5">{lead.company || lead.Company || "No Company"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Email</p>
+                      <p className="font-bold text-slate-900 mt-0.5 break-all">{lead.email || lead.Email || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Phone</p>
+                      <p className="font-bold text-slate-900 mt-0.5">{lead.phone || lead.Phone || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Status</p>
+                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                        {lead.status || "New"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Priority</p>
+                      <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        (lead.priority || "").toLowerCase() === 'high' || (lead.priority || "").toLowerCase() === 'urgent' ? 'bg-rose-50 text-rose-700' :
+                        (lead.priority || "").toLowerCase() === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {lead.priority || "Medium"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Source</p>
+                      <p className="font-bold text-slate-900 mt-0.5">{lead.source || "Website"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Assigned To</p>
+                      <p className="font-bold text-slate-900 mt-0.5">{assignedName}</p>
+                    </div> 
+                    <div className="sm:col-span-2">
+                      <p className="text-[11px] text-slate-400 font-semibold uppercase">Created At</p>
+                      <p className="font-medium text-slate-700 mt-0.5">{createdDate}</p>
+                    </div>
+                  </div>
+                </div>
 
-exports.sendEmailToLead = async (req, res) => {
-  try {
-    const { email, name, company } = req.body;
+                {/* Follow-ups Section (Shows all follow-up items with details) */}
+                {followUps.length > 0 && (
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                    <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Follow-up Activities ({followUps.length})
+                    </p>
+                    <div className="space-y-3">
+                      {followUps.map((fu, idx) => (
+                        <div key={idx} className="p-3 rounded-lg bg-slate-50 border
+                         border-slate-200/80 text-xs space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-slate-900 text-sm">
+                              #{idx + 1}: {fu.title || "Untitled Follow-up"}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-50
+                             text-indigo-700 font-semibold uppercase text-[10px]">
+                              {fu.status || "Pending"}
+                            </span>
+                          </div>
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Recipient email is required.",
-      });
-    }
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 
+                          border-t border-slate-200/60">
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase 
+                              font-semibold">Date & Time:</span>
+                              <p className="font-medium text-slate-700">
+                                {fu.dueDate ? new Date(fu.dueDate).toLocaleDateString()
+                                 : "N/A"} {fu.dueTime || fu.time || ""}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase
+                               font-semibold">Activity Type:</span>
+                              <p className="font-medium text-slate-700">
+                                {fu.activityType || fu.type || "Call"}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 uppercase
+                               font-semibold">Priority:</span>
+                              <p className="font-medium text-slate-700">
+                                {fu.priority || "Medium"}</p>
+                            </div>
+                          </div>
 
-    // Fix: Properly define leadName and companyName here to avoid "is not defined" error
-    const leadName = name ? name.trim() : "Valued Lead";
-    const companyName = company ? company.trim() : "Your Company";
+                          {fu.notes && (
+                            <div className="pt-1">
+                              <span className="text-[10px] text-slate-400 uppercase
+                               font-semibold">Notes:</span>
+                              <p className="text-slate-600 italic bg-white p-2 
+                              rounded border border-slate-200 mt-0.5">
+                                "{fu.notes}"
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-    // 2. High-Quality Professional HTML Email Template
-    const mailOptions = {
-      from: `"LeadSphere CRM" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: `Official Notification: Welcome to LeadSphere, ${leadName}!`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>LeadSphere Corporate Email</title>
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; background-color: #f4f6f9; padding: 40px 0;">
-            <tr>
-              <td align="center">
-                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                  
-                  <!-- Header Section -->
-                  <tr>
-                    <td align="center" style="background-color: #1e40af; padding: 30px 20px;">
-                      <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;">LeadSphere CRM</h1>
-                      <p style="color: #93c5fd; margin: 5px 0 0 0; font-size: 13px;">Official Enterprise Lead Communication</p>
-                    </td>
-                  </tr>
-
-                  <!-- Body Section -->
-                  <tr>
-                    <td style="padding: 35px 30px; color: #334155;">
-                      <h2 style="color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 600;">Dear ${leadName},</h2>
-                      
-                      <p style="font-size: 15px; line-height: 1.6; color: #475569;">
-                        Thank you for your interest in <strong>LeadSphere Solutions</strong>. We have successfully registered your details in our CRM system, and our dedicated team is currently reviewing your project requirements.
-                      </p>
-
-                      <!-- Lead Detail Card -->
-                      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin: 25px 0; padding: 15px 20px;">
-                        <tr>
-                          <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Recipient Email:</strong></td>
-                          <td style="padding: 6px 0; font-size: 14px; color: #0f172a; text-align: right;">${email}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Associated Company:</strong></td>
-                          <td style="padding: 6px 0; font-size: 14px; color: #0f172a; text-align: right;">${companyName}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Status:</strong></td>
-                          <td style="padding: 6px 0; font-size: 14px; color: #16a34a; font-weight: 600; text-align: right;">Verified & Active</td>
-                        </tr>
-                      </table>
-
-                      <p style="font-size: 15px; line-height: 1.6; color: #475569;">
-                        An assigned representative will get in touch with you shortly to schedule a detailed follow-up discussion. Should you have any immediate queries, feel free to reply directly to this message.
-                      </p>
-
-                      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #cbd5e1;">
-                        <p style="margin: 0; font-size: 14px; font-weight: 600; color: #0f172a;">Best Regards,</p>
-                        <p style="margin: 4px 0 0 0; font-size: 14px; color: #2563eb; font-weight: 700;">LeadSphere Operations Team</p>
-                      </div>
-                    </td>
-                  </tr>
-
-                  <!-- Footer Section -->
-                  <tr>
-                    <td align="center" style="background-color: #f1f5f9; padding: 20px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                      <p style="margin: 0;">This is an automated system notification sent from <strong>LeadSphere CRM</strong>.</p>
-                      <p style="margin: 4px 0 0 0;">© ${new Date().getFullYear()} LeadSphere Inc. All rights reserved.</p>
-                    </td>
-                  </tr>
-
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
-    };
-
-    // 3. Dispatch Live Email
-    let info = await transporter.sendMail(mailOptions);
-
-    console.log("\n=================== LIVE EMAIL DISPATCH ===================");
-    console.log(`MESSAGE ID : ${info.messageId}`);
-    console.log(`TO         : ${email}`);
-    console.log(`STATUS     : 200 OK - Email Delivered Successfully`);
-    console.log("===========================================================\n");
-
-    return res.status(200).json({
-      success: true,
-      message: `Email has been sent successfully from ${process.env.EMAIL_USER}!`,
-      messageId: info.messageId,
-    });
-  } catch (err) {
-    console.error("Professional Email Dispatch Error:", err);
-    return res.status(500).json({
-      success: false,
-      message: err.message || "Failed to dispatch professional email.",
-    });
-  }
-};
+                {/* Email Dispatch Section Info (If stored or logged in lead) */}
+                {(lead.lastEmailSubject || lead.emailMessage || lead.emailSubject) && (
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50
+                   space-y-2">
+                    <p className="text-xs font-bold text-slate-700 uppercase 
+                    tracking-wider">Last Dispatched Email</p>
+                    <div className="p-3 bg-white rounded-lg border
+                     border-slate-200 text-xs space-y-1">
+                      <p><strong className="text-slate-500">Subject:</strong>
+                       <span className="text-slate-900 font-semibold">
+                        {lead.emailSubject || lead.lastEmailSubject || "N/A"}
+                        </span></p>
+                      <p><strong className="text-slate-500">Message:</strong>
+                       <span className="text-slate-700">{lead.emailMessage || 
+                       lead.lastEmailMessage || "N/A"}</span></p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </LeadModal>

@@ -250,9 +250,7 @@ export default function MainLayout() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ==========================================
   // MENU
-  // ==========================================
   const menuGroups = [
     {
       title: "WORKSPACE",
@@ -287,9 +285,7 @@ export default function MainLayout() {
     },
   ];
 
-  // ==========================================
   // USER DETAILS
-  // ==========================================
   const role = String(user?.role || "employee")
     .trim()
     .toLowerCase();
@@ -302,9 +298,7 @@ export default function MainLayout() {
 
   const firstLetter = displayName.charAt(0).toUpperCase();
 
-  // ==========================================
   // CURRENT PAGE
-  // ==========================================
   const page = menuGroups
     .flatMap((group) => group.items)
     .find((item) => location.pathname === item.path);
@@ -316,9 +310,9 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-[#f5f7fc] text-slate-900">
       
-      {/* ==========================================
+      {/* 
           MOBILE OVERLAY
-      ========================================== */}
+       */}
       {menuOpen && (
         <button
           type="button"
@@ -328,9 +322,9 @@ export default function MainLayout() {
         />
       )}
 
-      {/* ==========================================
+      {/* 
           SIDEBAR
-      ========================================== */}
+       */}
       <aside
         className={`
           fixed left-0 top-0 z-50
@@ -475,25 +469,26 @@ export default function MainLayout() {
           <button
             type="button"
             onClick={logout}
+            // onChange={}
             className="
               w-full rounded-xl px-3 py-2.5
               text-left text-xs font-semibold text-red-300
               transition hover:bg-red-500/10 hover:text-red-200
             "
           >
-            ↪ Logout Session
+            ↪ Logout 
           </button>
         </div>
       </aside>
 
-      {/* ==========================================
+      {/* 
           MAIN AREA
-      ========================================== */}
+       */}
       <div className="min-h-screen lg:pl-[270px]">
 
-        {/* ==========================================
+        {/* 
             HEADER
-        ========================================== */}
+         */}
         <header
           className="
             sticky top-0 z-30
@@ -568,9 +563,9 @@ export default function MainLayout() {
           </div>
         </header>
 
-        {/* ==========================================
+        {/* 
             PAGE CONTENT
-        ========================================== */}
+         */}
         <main
           className="
             min-w-0

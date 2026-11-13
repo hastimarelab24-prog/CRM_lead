@@ -942,8 +942,6 @@
 //     </form>
 //   );
 // }
-
-
 import React, { useEffect, useState } from "react";
 import { apiRequest } from "../../api/api";
 
@@ -1058,12 +1056,23 @@ export default function LeadForm({
   const [sendEmail, setSendEmail] = useState(false);
   const [emailStatusMessange, setEmailStatusMessange] = useState("");
   const [ccEmail, setCcEmail] = useState("");
+  const [bccEmail, setBccEmail] = useState("");
   const [showccSection, setShowCcSection] = useState(false);
+  const [showBccSection, setShowBCcSection] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
 
   const handleAddQuickCc = (emailToAdd) => {
     setCcEmail((prev) => {
+      if (!prev.trim()) return emailToAdd;
+      const currentList = prev.split(",").map((e) => e.trim()).filter(Boolean);
+      if (currentList.includes(emailToAdd)) return prev;
+      return [...currentList, emailToAdd].join(",");
+    });
+  };
+
+  const handleAddQuickBcc = (emailToAdd) => {
+    setBccEmail((prev) => {
       if (!prev.trim()) return emailToAdd;
       const currentList = prev.split(",").map((e) => e.trim()).filter(Boolean);
       if (currentList.includes(emailToAdd)) return prev;
@@ -1179,6 +1188,16 @@ export default function LeadForm({
       }
     }
 
+    const trimmedBcc = bccEmail.trim();
+    if (trimmedBcc) {
+      const bccList = trimmedBcc.split(",").map((e) => e.trim()).filter(Boolean);
+      const invalidBCc = bccList.find((e) => !emailRegex.test(e));
+      if (invalidBCc) {
+        setEmailStatusMessange(`Invalid BCC email format: ${invalidBCc}`);
+        return;
+      }
+    }
+
     try {
       setSendEmail(true);
       setEmailStatusMessange("");
@@ -1189,6 +1208,7 @@ export default function LeadForm({
         subject: emailSubject.trim(),
         message: emailMessage.trim(),
         ...(trimmedCc ? { cc: trimmedCc } : {}),
+        ...(trimmedBcc ? { bcc: trimmedBcc } : {}),
       });
 
       if (response?.success) {
@@ -1417,7 +1437,7 @@ export default function LeadForm({
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="w-[95vw] sm:w-[90vw] max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden rounded-2xl bg-white p-4 sm:p-6 shadow-xl"
+      className=" w-fullsm:w-[90vw] max-w-5xl bg-white p-4 sm:p-6"
     >
       <div>
         <h2 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -1726,13 +1746,16 @@ export default function LeadForm({
 
           <button
             type="button"
-            onClick={() => setShowCcSection((prev) => !prev)}
+            onClick={() => {
+              const newValue = !(showccSection || showBccSection);
+              setShowCcSection(newValue);
+              setShowBCcSection(newValue);
+            }}
             className="self-start sm:self-auto flex items-center gap-1.5 rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 cursor-pointer"
           >
-            <span>{showccSection ? "Hide CC" : "Add CC"}</span>
             <svg
               className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                showccSection ? "rotate-180" : "rotate-0"
+                showccSection || showBccSection ? "rotate-180" : "rotate-0"
               }`}
               fill="none"
               stroke="currentColor"
@@ -1824,6 +1847,33 @@ export default function LeadForm({
                 className="rounded-lg bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 border border-indigo-100 cursor-pointer"
               >
                 + hastimarelab24@gmail.com
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showBccSection && (
+          <div className="mt-3 rounded-xl border border-purple-200 bg-white p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              <label className="block text-xs font-bold text-purple-900">BCC</label>
+              <span className="text-[11px] text-gray-500">Multiple: use comma (,)</span>
+            </div>
+
+            <input
+              type="text"
+              value={bccEmail}
+              placeholder="audit@example.com"
+              onChange={(e) => setBccEmail(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-gray-300 px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-purple-500"
+            />
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-gray-600 mr-1">Quick add:</span>
+              <button
+                type="button"
+                onClick={() => handleAddQuickBcc("hastimarelab24@gmail.com")}
+                className="rounded-lg bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100 border border-purple-100 cursor-pointer"
+              >
+                +hastimarelab24@gmail.com
               </button>
             </div>
           </div>

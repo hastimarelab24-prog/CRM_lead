@@ -189,7 +189,7 @@ export default function Team() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="w-full mx-auto space-y-8">
 
         {/* Header */}
         <header className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200">

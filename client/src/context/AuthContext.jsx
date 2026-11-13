@@ -4,10 +4,12 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
   const [token, setToken] = useState(
     () => localStorage.getItem("token")
   );
@@ -38,7 +40,8 @@ export function AuthProvider({ children }) {
 
     setToken(null);
     setUser(null);
-  }, []);
+    navigate("/login",{replace:true})
+  }, [navigate]);
 
   const value = useMemo(
     () => ({
